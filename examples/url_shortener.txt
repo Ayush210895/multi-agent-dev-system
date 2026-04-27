@@ -1,0 +1,18 @@
+Build a URL shortener service.
+
+Functional requirements:
+- POST /shorten with JSON {"url": "..."} returns {"slug": "abc123",
+  "short_url": "http://host/abc123"}.
+- GET /<slug> issues a 302 redirect to the original URL.
+- GET /<slug>/stats returns {"slug": ..., "url": ..., "hits": int,
+  "created_at": ...}.
+- Slugs are 6-character base62 strings; collisions retry up to 5 times.
+- Persist to SQLite at the path in URL_DB_PATH (default ./urls.db).
+- Reject non-http(s) URLs with HTTP 422.
+
+Non-functional:
+- Python 3.11+, FastAPI.
+- pytest covering create, redirect, stats, and the validation rejection.
+- Dockerfile on port 8000.
+
+Out of scope: custom slugs, expiration, user accounts, rate limiting.

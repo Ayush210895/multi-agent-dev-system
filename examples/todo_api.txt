@@ -1,0 +1,24 @@
+Build a TODO list REST API.
+
+Functional requirements:
+- Tasks have: id (uuid), title (str, required), description (str, optional),
+  done (bool, default false), created_at, updated_at.
+- Endpoints:
+    POST   /tasks            create a task
+    GET    /tasks            list tasks, with ?done=true|false filter
+    GET    /tasks/{id}       fetch one task
+    PATCH  /tasks/{id}       update title, description, or done
+    DELETE /tasks/{id}       delete a task
+- Persist to SQLite. The database path should be configurable via the
+  TODO_DB_PATH environment variable (default ./todo.db).
+- Return JSON. Use proper HTTP status codes (201 on create, 404 when a
+  task is not found, 422 on validation errors).
+- Include OpenAPI docs at /docs.
+
+Non-functional:
+- Python 3.11+, FastAPI, SQLModel or SQLAlchemy.
+- pytest test suite covering happy paths and the 404/422 error paths.
+- Dockerfile that runs the API on port 8000.
+
+Out of scope for v1: authentication, multi-user support, pagination,
+real-time updates.
