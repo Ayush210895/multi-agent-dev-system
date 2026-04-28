@@ -22,11 +22,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable
 
-import anyio
-
 # We import the SDK lazily inside run_pipeline so that `python -m
 # orchestrator.pipeline --help`-style introspection works without the
-# SDK being installed.
+# SDK being installed. anyio is imported lazily for the same reason, so
+# `python build.py --help` works before dependencies are installed.
 
 
 @dataclass
@@ -307,6 +306,8 @@ def run_pipeline(
             agents=agents,
             model=model,
         )
+
+    import anyio
 
     return anyio.run(_wrapped)
 

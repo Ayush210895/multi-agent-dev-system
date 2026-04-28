@@ -62,6 +62,12 @@ npm install -g @anthropic-ai/claude-code
 
 ## Quick start
 
+The help command works before optional runtime dependencies are installed:
+
+```bash
+python build.py --help
+```
+
 Build the included TODO API example end-to-end:
 
 ```bash
@@ -104,6 +110,9 @@ runs/20260427-181500-build-a-todo/
 ├── scripts/test.sh
 └── README.md                # README for the *generated* app
 ```
+
+See `docs/sample-output.md` for a compact example of the generated
+run directory and summary.
 
 ## Configuration
 
