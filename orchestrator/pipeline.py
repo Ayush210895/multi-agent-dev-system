@@ -16,6 +16,8 @@ and returns a structured result.
 from __future__ import annotations
 
 import os
+import json
+import hashlib
 import shutil
 import time
 from dataclasses import dataclass, field
@@ -112,6 +114,7 @@ async def _run_agent(
     run_dir: Path,
     transcripts_dir: Path,
     model: str,
+    permission_mode: str,
 ) -> AgentRun:
     """Run a single agent against the shared run directory."""
 
@@ -133,9 +136,7 @@ async def _run_agent(
         allowed_tools=list(agent_module.ALLOWED_TOOLS),
         cwd=str(run_dir),
         model=model,
-        # Auto-approve tool use for unattended pipeline runs. Override
-        # with permission_mode="ask" if you want a human in the loop.
-        permission_mode="acceptEdits",
+        permission_mode=permission_mode,
     )
 
     user_prompt = _build_user_prompt(agent_module, project_request)
@@ -230,6 +231,7 @@ async def run_pipeline_async(
     *,
     agents: list[Any] | None = None,
     model: str | None = None,
+    permission_mode: str | None = None,
 ) -> PipelineResult:
     """Run the full pipeline asynchronously.
 
@@ -254,6 +256,13 @@ async def run_pipeline_async(
         or os.environ.get("CLAUDE_MODEL")
         or "claude-sonnet-4-5"
     )
+    chosen_permission_mode = (
+        permission_mode
+        or os.environ.get("CLAUDE_PERMISSION_MODE")
+        or "default"
+    )
+    if chosen_permission_mode not in {"default", "acceptEdits", "plan"}:
+        raise ValueError("permission_mode must be default, acceptEdits, or plan")
 
     run_dir = _prepare_run_dir(output_root, _hint_from_request(project_request))
     transcripts_dir = run_dir / "transcripts"
@@ -270,6 +279,7 @@ async def run_pipeline_async(
             run_dir=run_dir,
             transcripts_dir=transcripts_dir,
             model=chosen_model,
+            permission_mode=chosen_permission_mode,
         )
         result.agent_runs.append(agent_run)
         status = "OK" if agent_run.succeeded else "FAIL"
@@ -282,6 +292,25 @@ async def run_pipeline_async(
     # Write the final summary into the run directory.
     summary_path = run_dir / "RUN_SUMMARY.md"
     summary_path.write_text(result.summary(), encoding="utf-8")
+    manifest = {
+        "request_sha256": hashlib.sha256(project_request.encode("utf-8")).hexdigest(),
+        "model": chosen_model,
+        "permission_mode": chosen_permission_mode,
+        "succeeded": result.succeeded,
+        "agents": [
+            {
+                "name": run.name,
+                "succeeded": run.succeeded,
+                "duration_s": round(run.duration_s, 3),
+                "transcript": str(run.transcript_path.relative_to(run_dir)),
+                "error": run.error,
+            }
+            for run in result.agent_runs
+        ],
+    }
+    (run_dir / "RUN_MANIFEST.json").write_text(
+        json.dumps(manifest, indent=2), encoding="utf-8"
+    )
 
     return result
 
@@ -292,6 +321,7 @@ def run_pipeline(
     *,
     agents: list[Any] | None = None,
     model: str | None = None,
+    permission_mode: str | None = None,
 ) -> PipelineResult:
     """Synchronous wrapper around `run_pipeline_async`.
 
@@ -305,6 +335,7 @@ def run_pipeline(
             output_root,
             agents=agents,
             model=model,
+            permission_mode=permission_mode,
         )
 
     import anyio

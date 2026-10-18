@@ -72,6 +72,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--model",
         help="Override the Claude model (default: env CLAUDE_MODEL or claude-sonnet-4-5).",
     )
+    parser.add_argument(
+        "--allow-unattended-edits",
+        action="store_true",
+        help="Allow agents to edit without interactive approval. Disabled by default.",
+    )
     return parser.parse_args(argv)
 
 
@@ -112,6 +117,7 @@ def main(argv: list[str] | None = None) -> int:
         project_request=request,
         output_root=args.output_dir,
         model=args.model,
+        permission_mode="acceptEdits" if args.allow_unattended_edits else "default",
     )
 
     print()

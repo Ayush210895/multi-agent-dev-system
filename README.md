@@ -74,6 +74,13 @@ Build the included TODO API example end-to-end:
 python build.py --example todo_api
 ```
 
+The default permission mode requires approval for edits. Unattended editing is
+an explicit operational choice:
+
+```bash
+python build.py --example todo_api --allow-unattended-edits
+```
+
 Or describe your own project:
 
 ```bash
@@ -167,16 +174,17 @@ print(result.summary())
   typically takes 5-15 minutes and consumes significant tokens. Start
   with the smallest example to confirm your setup before pointing it
   at anything ambitious.
-- The orchestrator runs with `permission_mode="acceptEdits"` so the
-  pipeline does not stall waiting for a human. Audit the generated
-  output before running it. If you'd rather approve every tool call,
-  change the mode in `orchestrator/pipeline.py`.
+- The orchestrator defaults to the SDK's approval-aware permission mode.
+  Unattended edits require `--allow-unattended-edits` and generated output must
+  still be audited before execution.
 - The pipeline stops at the first agent that fails (raises an
   exception). The partial output and full transcript are kept on disk
   so you can inspect what went wrong.
 - The Reviewer is allowed to apply its own fixes. If you want a
   read-only review, remove `Edit` and `Write` from
   `agents/reviewer.py`'s `ALLOWED_TOOLS`.
+- Every run writes a machine-readable `RUN_MANIFEST.json` alongside its summary
+  and transcripts. See [operations and safety](docs/OPERATIONS.md).
 
 ## License
 

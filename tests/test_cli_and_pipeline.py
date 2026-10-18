@@ -30,6 +30,11 @@ class CliAndPipelineTests(unittest.TestCase):
 
         self.assertEqual(build.resolve_request(args), "Build a small API")
 
+    def test_unattended_edits_are_opt_in(self):
+        args = build.parse_args(["Build a small API"])
+
+        self.assertFalse(args.allow_unattended_edits)
+
     def test_resolve_request_rejects_multiple_sources(self):
         args = argparse.Namespace(
             request="Build a small API",
